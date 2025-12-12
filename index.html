@@ -102,7 +102,22 @@
         const track = document.getElementById('village-track');
         const spriteOrder = [1, 2, 3, 21, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 4, 22, 23];
         const markerWidth = 110; 
-        const simulatedCurrentDay = 24; // Puesto en 24 para ver todos desbloqueados y probar los links
+        
+        // --- CÁLCULO DEL DÍA ACTUAL ---
+        const now = new Date();
+        const currentMonth = now.getMonth(); // 0 = Enero, 11 = Diciembre
+        const currentDayOfMonth = now.getDate();
+        
+        let activeDay = 1; // Por defecto al día 1
+        
+        if (currentMonth === 11) {
+            // Si es diciembre, el día activo es el día de hoy (tope 24, aunque solo dibujaremos hasta el 23)
+            activeDay = currentDayOfMonth > 24 ? 24 : currentDayOfMonth;
+        } else if (currentMonth > 11) {
+             activeDay = 24;
+        } else {
+             activeDay = 1;
+        }
 
         // --- CARGA DE DATOS Y GENERACIÓN DE CASAS ---
         fetch('games.json')
@@ -119,21 +134,25 @@
                     gamesMap[game.numero] = game;
                 });
 
-                // Generar Casas (1 a 24)
-                for (let i = 1; i <= 24; i++) {
+                // Generar Casas (1 a 23) - CAMBIO AQUÍ: antes era <= 24
+                for (let i = 1; i <= 23; i++) {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'house-container';
+                    wrapper.id = `house-${i}`; 
 
                     const spriteIndex = spriteOrder.indexOf(i);
                     const safeSpriteIndex = spriteIndex !== -1 ? spriteIndex : 22; 
                     const markerBgX = -(safeSpriteIndex * markerWidth);
-                    const isUnlocked = i <= simulatedCurrentDay;
+                    
+                    // Lógica de desbloqueo: Solo si i <= activeDay
+                    const isUnlocked = i <= activeDay;
 
                     // Datos del JSON
                     const gameInfo = gamesMap[i];
                     const gameUrl = gameInfo ? gameInfo.enlace : '#';
                     const gameName = gameInfo ? gameInfo.nombre : `Día ${i}`;
 
+                    // Lógica visual: Bloqueados (abajo) vs Desbloqueados (arriba)
                     let markerClass = isUnlocked ? 'marker unlocked' : 'marker locked';
                     let markerBgY = isUnlocked ? 0 : -176; 
                     
@@ -159,12 +178,15 @@
                         <div class="css-house" style="display:none;"><div class="css-snow-behind"></div></div>
                     `;
 
-                    // Lógica de Click para ir al juego
+                    // Lógica de Click
                     const markerDiv = wrapper.querySelector('.marker');
-                    if (isUnlocked && gameUrl !== '#') {
-                        markerDiv.addEventListener('click', () => {
-                            window.location.href = gameUrl;
-                        });
+                    
+                    if (isUnlocked) {
+                        if (gameUrl !== '#') {
+                            markerDiv.addEventListener('click', () => {
+                                window.location.href = gameUrl;
+                            });
+                        }
                         markerDiv.style.cursor = 'pointer';
                     } else {
                         markerDiv.style.cursor = 'default';
@@ -175,12 +197,41 @@
 
                 // Recalcular límites de scroll una vez que las casas existen
                 window.recalcScrollLimits();
+
+                // --- CENTRAR EN EL DÍA ACTUAL AL ENTRAR ---
+                // Si hoy es día 24 o superior, intentará ir al último disponible (23)
+                // ya que house-24 no existe.
+                setTimeout(() => {
+                    let targetDay = activeDay;
+                    if (targetDay > 23) targetDay = 23; 
+                    centerOnDay(targetDay);
+                }, 100); 
             })
             .catch(error => {
                 console.error("Error cargando los juegos:", error);
                 track.innerHTML = "<p style='color:white; font-size:20px; padding:20px;'>Error: Necesitas un servidor local para cargar 'games.json' (CORS).</p>";
             });
 
+        function centerOnDay(day) {
+            const targetHouse = document.getElementById(`house-${day}`);
+            if (!targetHouse) return; // Seguridad por si la casa no existe
+
+            const viewportWidth = window.innerWidth;
+            const houseLeft = targetHouse.offsetLeft;
+            const houseWidth = targetHouse.offsetWidth;
+
+            // Calculamos la posición X para que la casa quede en el centro de la pantalla
+            let centerPos = -(houseLeft - (viewportWidth / 2) + (houseWidth / 2));
+
+            // Respetamos los límites del scroll
+            if (centerPos > minScroll) centerPos = minScroll;
+            if (centerPos < maxScroll) centerPos = maxScroll;
+
+            currentX = centerPos;
+            targetX = centerPos;
+            
+            updateScrollVisuals();
+        }
 
         // --- AUTOBUSES ---
         function spawnBus() {
@@ -200,7 +251,6 @@
             // Movimiento hacia la izquierda
             bus.style.transform = `translateX(-${window.innerWidth + 800}px) scaleX(-1)`;
 
-            // Usamos transitionend para asegurar que completa el viaje
             bus.addEventListener('transitionend', () => {
                 bus.remove();
             });
@@ -234,7 +284,6 @@
         window.recalcScrollLimits = function() {
             const trackWidth = track.scrollWidth;
             const viewportWidth = window.innerWidth;
-            // Si el track está vacío (antes del fetch), trackWidth es 0, evitamos scroll extraño
             if (trackWidth === 0) return;
             
             maxScroll = -(trackWidth - viewportWidth);
@@ -242,7 +291,6 @@
 
         window.addEventListener('load', window.recalcScrollLimits);
         window.addEventListener('resize', window.recalcScrollLimits);
-        // Timeout de seguridad por si las imágenes tardan
         setTimeout(window.recalcScrollLimits, 1000);
 
         function startScroll(dir) {
@@ -250,6 +298,18 @@
             if (!animFrame) updateScroll();
         }
         function stopScroll() { isScrolling = 0; }
+
+        function updateScrollVisuals() {
+            track.style.transform = `translateX(${currentX}px)`;
+
+            const mountainX = currentX * 0.2;
+            const treeX = currentX * 0.5;
+            const groundX = currentX * 1.0;
+
+            document.getElementById('mountains').style.transform = `translateX(${mountainX}px)`;
+            document.getElementById('trees').style.transform = `translateX(${treeX}px)`;
+            document.getElementById('ground').style.backgroundPositionX = `${groundX}px`;
+        }
 
         function updateScroll() {
             if (isScrolling !== 0) {
@@ -261,17 +321,7 @@
             currentX += (targetX - currentX) * 0.1;
             if (Math.abs(targetX - currentX) < 0.5 && isScrolling === 0) currentX = targetX;
 
-            track.style.transform = `translateX(${currentX}px)`;
-
-            const mountainX = currentX * 0.2;
-            const treeX = currentX * 0.5;
-            // Parallax para la nieve (suelo)
-            const groundX = currentX * 1.0;
-
-            document.getElementById('mountains').style.transform = `translateX(${mountainX}px)`;
-            document.getElementById('trees').style.transform = `translateX(${treeX}px)`;
-            // Movemos la posición del fondo para que parezca que la nieve se desliza
-            document.getElementById('ground').style.backgroundPositionX = `${groundX}px`;
+            updateScrollVisuals();
 
             if (isScrolling !== 0 || Math.abs(targetX - currentX) >= 0.5) {
                 animFrame = requestAnimationFrame(updateScroll);

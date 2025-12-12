@@ -164,8 +164,8 @@ body, html {
 #mountains {
     height: 400px;
     z-index: 3;
-
-bottom: 250px; 
+    /* Movemos las montañas un poco arriba para dejar espacio al pueblo */
+    bottom: 250px; 
     background-image: linear-gradient(to bottom, transparent 60%, #a8dce3 100%);
 }
 .mountain-shape {
@@ -177,8 +177,8 @@ bottom: 250px;
 }
 
 #rail {
-
-bottom: 310px; 
+    /* Rail elevado para que el ferry vaya por detrás de las casas */
+    bottom: 310px; 
     height: 10px;
     background: rgba(255,255,255,0.5);
     z-index: 4;
@@ -197,8 +197,8 @@ bottom: 310px;
 
 #trees {
     position: absolute;
-
-bottom: 300px; 
+    /* Ajustamos los árboles detrás de las casas */
+    bottom: 300px; 
     left: 0;
     height: 300px;
     width: 10000px;
@@ -212,8 +212,8 @@ bottom: 300px;
 
 #village-track {
     position: absolute;
-
-bottom: 280px; 
+    /* Ajuste fino para que las casas pisen el suelo correctamente */
+    bottom: 280px; 
     left: 0;
     height: 500px;
     z-index: 30; 
@@ -226,8 +226,8 @@ bottom: 280px;
 }
 
 #ground {
-
-height: 350px; 
+    /* El suelo cubre la parte inferior */
+    height: 350px; 
     background-image: url('assets/snow.png');
     background-repeat: repeat-x;
     background-position: top center;
@@ -287,7 +287,7 @@ height: 350px;
     height: 175px; 
     background-image: url('assets/markers_sprite.png');
     background-repeat: no-repeat;
-    cursor: pointer;
+    /* El cursor se define en JS según si está bloqueado o no */
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -300,28 +300,31 @@ height: 350px;
     transform-origin: bottom center;
     filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2));
     animation: markerSway 3s ease-in-out infinite;
+    /* Aseguramos que use la parte de arriba del sprite (0px) aunque se define inline en JS */
 }
 .marker.unlocked:hover { transform: scale(1.8); }
 
 .marker.locked {
-    position: relative;
-    background-position-y: -176px !important;
-    transform: scale(0.6);
-    margin-bottom: -20px;
-    z-index: 5;
-    filter: grayscale(0.2) brightness(0.9);
-    opacity: 0.9;
+    position: absolute;
+    bottom: 0;
+    right: -60px;
+    z-index: 60;
+    transform: scale(1.6);
+    transform-origin: bottom center;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2));
+    animation: markerSway 3s ease-in-out infinite;
+    /* Aseguramos que use la parte de arriba del sprite (0px) aunque se define inline en JS */
 }
-.marker.locked:hover { transform: scale(0.7); }
+.marker.locked:hover { transform: scale(1.8); }
 
 .elf {
     position: absolute;
-
-bottom: -60px; 
+    /* Los elfos andan por el suelo */
+    bottom: -60px; 
     width: auto; 
     height: 10%; 
-
-z-index: 6; 
+    /* Estarán detrás de las casas */
+    z-index: 6; 
     pointer-events: none;
     transform: scale(1.5);
     transform-origin: bottom center;
