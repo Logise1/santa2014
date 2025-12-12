@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google Santa Tracker 2014 - Remake Fiel</title>
 
-<link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&family=Lobster&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 
-<script>
+    <script>
         function handleImgLoad(img) {
             img.style.display = 'block';
             const fallback = img.parentElement.querySelector('.css-house');
@@ -25,11 +25,11 @@
 </head>
 <body>
 
-<div class="header">
+    <div class="header">
         <div class="google-logo">Google</div>
         <h1 class="title">Santa Tracker</h1>
 
-<div class="countdown-container">
+        <div class="countdown-container">
             <div class="countdown-timers">
                 <div class="timer-block">
                     <div class="timer-number" id="d">00</div>
@@ -51,45 +51,45 @@
         </div>
     </div>
 
-<div id="village-wrapper">
+    <div id="village-wrapper">
         <div class="layer" id="sky-layer">
             <img id="sun" src="assets/sun.png" alt="Sol">
             <img id="moon" src="assets/moon.png" alt="Luna">
             <img id="plane" src="assets/plane.png" alt="Avión">
 
-<div id="clouds">
+            <div id="clouds">
                 <div class="cloud" style="left: 10%; top: 50px;"></div>
                 <div class="cloud" style="left: 50%; top: 20px; width:180px;"></div>
                 <div class="cloud" style="left: 80%; top: 80px;"></div>
             </div>
         </div>
 
-<div id="mountains" class="layer">
+        <div id="mountains" class="layer">
             <div class="mountain-shape" style="left: -50px; border-bottom-color: #b2ebf2;"></div>
             <div class="mountain-shape" style="left: 20%; transform: scale(1.5); z-index: -1;"></div>
             <div class="mountain-shape" style="left: 50%; border-bottom-color: #b2ebf2;"></div>
             <div class="mountain-shape" style="left: 80%; transform: scale(1.2);"></div>
         </div>
 
-<div id="trees"></div>
+        <div id="trees"></div>
 
-<div id="rail" class="layer">
+        <div id="rail" class="layer">
             <img id="ferry" src="assets/ferry.png" alt="Ferry">
         </div>
 
-<div id="village-track">
+        <div id="village-track">
+            <!-- Las casas se generarán aquí mediante JS -->
+        </div>
 
-</div>
+        <div id="bus-container"></div>
 
-<div id="bus-container"></div>
-
-<div id="ground" class="layer"></div>
+        <div id="ground" class="layer"></div>
     </div>
 
-<div class="nav-btn prev-btn" onmousedown="startScroll(1)" onmouseup="stopScroll()" onmouseleave="stopScroll()"></div>
+    <div class="nav-btn prev-btn" onmousedown="startScroll(1)" onmouseup="stopScroll()" onmouseleave="stopScroll()"></div>
     <div class="nav-btn next-btn" onmousedown="startScroll(-1)" onmouseup="stopScroll()" onmouseleave="stopScroll()"></div>
 
-<script>
+    <script>
         // --- VARIABLES DE ESTADO ---
         var currentX = 0;
         var targetX = 0;
@@ -98,88 +98,127 @@
         var minScroll = 0; 
         var maxScroll = -5000; 
 
-// --- Configuración e Inicialización ---
+        // --- Configuración e Inicialización ---
         const track = document.getElementById('village-track');
         const spriteOrder = [1, 2, 3, 21, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 4, 22, 23];
         const markerWidth = 110; 
-        const simulatedCurrentDay = 12; 
+        const simulatedCurrentDay = 24; // Puesto en 24 para ver todos desbloqueados y probar los links
 
-// Generar Casas
-        for (let i = 1; i <= 24; i++) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'house-container';
+        // --- CARGA DE DATOS Y GENERACIÓN DE CASAS ---
+        fetch('games.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("No se pudo cargar games.json");
+                }
+                return response.json();
+            })
+            .then(gamesData => {
+                // Crear un mapa para acceso rápido por número de día
+                const gamesMap = {};
+                gamesData.forEach(game => {
+                    gamesMap[game.numero] = game;
+                });
 
-const spriteIndex = spriteOrder.indexOf(i);
-            const safeSpriteIndex = spriteIndex !== -1 ? spriteIndex : 22; 
-            const markerBgX = -(safeSpriteIndex * markerWidth);
-            const isUnlocked = i <= simulatedCurrentDay;
+                // Generar Casas (1 a 24)
+                for (let i = 1; i <= 24; i++) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'house-container';
 
-let markerClass = isUnlocked ? 'marker unlocked' : 'marker locked';
-            let markerBgY = isUnlocked ? 0 : -176; 
-            let titleText = `Casa ${i}`;
+                    const spriteIndex = spriteOrder.indexOf(i);
+                    const safeSpriteIndex = spriteIndex !== -1 ? spriteIndex : 22; 
+                    const markerBgX = -(safeSpriteIndex * markerWidth);
+                    const isUnlocked = i <= simulatedCurrentDay;
 
-let elvesHTML = '';
-            const numElves = Math.floor(Math.random() * 6) + 1;
+                    // Datos del JSON
+                    const gameInfo = gamesMap[i];
+                    const gameUrl = gameInfo ? gameInfo.enlace : '#';
+                    const gameName = gameInfo ? gameInfo.nombre : `Día ${i}`;
 
-for(let e = 0; e < numElves; e++) {
-                // MODIFICADO: Generar un número aleatorio entre 1 y 17 para las imágenes individuales
-                const elfNum = Math.floor(Math.random() * 17) + 1;
+                    let markerClass = isUnlocked ? 'marker unlocked' : 'marker locked';
+                    let markerBgY = isUnlocked ? 0 : -176; 
+                    
+                    // HTML de Elfos
+                    let elvesHTML = '';
+                    const numElves = Math.floor(Math.random() * 6) + 1;
 
-// Calculamos offsets aleatorios
-                const randomOffset = Math.floor(Math.random() * 800) - 100;
-                const randomBottom = Math.floor(Math.random() * 50) - 0;
+                    for(let e = 0; e < numElves; e++) {
+                        const elfNum = Math.floor(Math.random() * 17) + 1;
+                        const randomOffset = Math.floor(Math.random() * 800) - 100;
+                        const randomBottom = Math.floor(Math.random() * 50) - 0;
+                        elvesHTML += `<img src="elves/elf_${elfNum}.png" class="elf" alt="Elfo" style="left: 50%; margin-left: ${randomOffset}px; bottom: ${randomBottom}px;">`;
+                    }
 
-// MODIFICADO: Usar tag <img> en lugar de div con background
-                elvesHTML += `<img src="elves/elf_${elfNum}.png" class="elf" alt="Elfo" style="left: 50%; margin-left: ${randomOffset}px; bottom: ${randomBottom}px;">`;
-            }
+                    // Construir el HTML
+                    wrapper.innerHTML = `
+                        <div class="${markerClass}" 
+                             style="background-position: ${markerBgX}px ${markerBgY}px;" 
+                             title="${gameName}"></div>
+                        ${elvesHTML}
+                        <img src="assets/house_${i}_snow.png" class="snow-layer" onload="this.style.display='block'" onerror="this.style.display='none'">
+                        <img src="assets/house_${i}.png" class="house-layer" onload="handleImgLoad(this)" onerror="handleImgError(this)">
+                        <div class="css-house" style="display:none;"><div class="css-snow-behind"></div></div>
+                    `;
 
-wrapper.innerHTML = `
-                <div class="${markerClass}" style="background-position: ${markerBgX}px ${markerBgY}px;" title="${titleText}"></div>
-                ${elvesHTML}
-                <img src="assets/house_${i}_snow.png" class="snow-layer" onload="this.style.display='block'" onerror="this.style.display='none'">
-                <img src="assets/house_${i}.png" class="house-layer" onload="handleImgLoad(this)" onerror="handleImgError(this)">
-                <div class="css-house" style="display:none;"><div class="css-snow-behind"></div></div>
-            `;
-            track.appendChild(wrapper);
-        }
+                    // Lógica de Click para ir al juego
+                    const markerDiv = wrapper.querySelector('.marker');
+                    if (isUnlocked && gameUrl !== '#') {
+                        markerDiv.addEventListener('click', () => {
+                            window.location.href = gameUrl;
+                        });
+                        markerDiv.style.cursor = 'pointer';
+                    } else {
+                        markerDiv.style.cursor = 'default';
+                    }
 
-// --- AUTOBUSES ---
+                    track.appendChild(wrapper);
+                }
+
+                // Recalcular límites de scroll una vez que las casas existen
+                window.recalcScrollLimits();
+            })
+            .catch(error => {
+                console.error("Error cargando los juegos:", error);
+                track.innerHTML = "<p style='color:white; font-size:20px; padding:20px;'>Error: Necesitas un servidor local para cargar 'games.json' (CORS).</p>";
+            });
+
+
+        // --- AUTOBUSES ---
         function spawnBus() {
             const viewportRightEdge = Math.abs(currentX) + window.innerWidth;
             const spawnX = viewportRightEdge + 200; 
 
-const bus = document.createElement('div');
+            const bus = document.createElement('div');
             bus.className = 'bus';
             bus.style.left = spawnX + 'px';
             bus.style.transform = 'scaleX(-1)'; 
 
-track.appendChild(bus);
+            track.appendChild(bus);
 
-// Reflow
+            // Reflow
             bus.offsetHeight; 
 
-// Movimiento hacia la izquierda
+            // Movimiento hacia la izquierda
             bus.style.transform = `translateX(-${window.innerWidth + 800}px) scaleX(-1)`;
 
-// Usamos transitionend para asegurar que completa el viaje
+            // Usamos transitionend para asegurar que completa el viaje
             bus.addEventListener('transitionend', () => {
                 bus.remove();
             });
         }
 
-function startBusSpawner() {
+        function startBusSpawner() {
              spawnBus();
              setTimeout(startBusSpawner, 4000 + Math.random() * 4000);
         }
         startBusSpawner();
 
-// --- AUDIO ---
+        // --- AUDIO ---
         let audioStarted = false;
         const bgm = new Audio('audio/village_theme.mp3');
         bgm.loop = true;
         bgm.volume = 0.5;
 
-const startAudio = () => {
+        const startAudio = () => {
             if (!audioStarted) {
                 bgm.play().then(() => {
                     audioStarted = true;
@@ -191,65 +230,69 @@ const startAudio = () => {
         document.addEventListener('click', startAudio);
         document.addEventListener('keydown', startAudio);
 
-// --- SCROLL FUNCTIONS ---
+        // --- SCROLL FUNCTIONS ---
         window.recalcScrollLimits = function() {
             const trackWidth = track.scrollWidth;
             const viewportWidth = window.innerWidth;
+            // Si el track está vacío (antes del fetch), trackWidth es 0, evitamos scroll extraño
+            if (trackWidth === 0) return;
+            
             maxScroll = -(trackWidth - viewportWidth);
         };
 
-window.addEventListener('load', window.recalcScrollLimits);
+        window.addEventListener('load', window.recalcScrollLimits);
         window.addEventListener('resize', window.recalcScrollLimits);
+        // Timeout de seguridad por si las imágenes tardan
         setTimeout(window.recalcScrollLimits, 1000);
 
-function startScroll(dir) {
+        function startScroll(dir) {
             isScrolling = dir;
             if (!animFrame) updateScroll();
         }
         function stopScroll() { isScrolling = 0; }
 
-function updateScroll() {
+        function updateScroll() {
             if (isScrolling !== 0) {
                 targetX += isScrolling * 25; 
                 if (targetX > minScroll) targetX = minScroll;
                 if (targetX < maxScroll) targetX = maxScroll;
             }
 
-currentX += (targetX - currentX) * 0.1;
+            currentX += (targetX - currentX) * 0.1;
             if (Math.abs(targetX - currentX) < 0.5 && isScrolling === 0) currentX = targetX;
 
-track.style.transform = `translateX(${currentX}px)`;
+            track.style.transform = `translateX(${currentX}px)`;
 
-const mountainX = currentX * 0.2;
+            const mountainX = currentX * 0.2;
             const treeX = currentX * 0.5;
             // Parallax para la nieve (suelo)
             const groundX = currentX * 1.0;
 
-document.getElementById('mountains').style.transform = `translateX(${mountainX}px)`;
+            document.getElementById('mountains').style.transform = `translateX(${mountainX}px)`;
             document.getElementById('trees').style.transform = `translateX(${treeX}px)`;
             // Movemos la posición del fondo para que parezca que la nieve se desliza
             document.getElementById('ground').style.backgroundPositionX = `${groundX}px`;
 
-if (isScrolling !== 0 || Math.abs(targetX - currentX) >= 0.5) {
+            if (isScrolling !== 0 || Math.abs(targetX - currentX) >= 0.5) {
                 animFrame = requestAnimationFrame(updateScroll);
             } else {
                 animFrame = null;
             }
         }
 
-function updateTimer() {
+        function updateTimer() {
             const now = new Date();
             const currentYear = now.getFullYear();
             let xmas = new Date(currentYear, 11, 24, 11, 0, 0);
             if (now > xmas) xmas.setFullYear(currentYear + 1);
 
-const diff = xmas - now;
+            const diff = xmas - now;
             const d = Math.floor(diff / (1000 * 60 * 60 * 24));
             const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const m = Math.floor((diff / 1000 / 60) % 60);
             const s = Math.floor((diff / 1000) % 60);
 
-document.getElementById('d').innerText = String(d).padStart(2, '0');
+            document.getElementById('d').innerText = String(d).padStart(2, '0');
             document.getElementById('h').innerText = String(h).padStart(2, '0');
             document.getElementById('m').innerText = String(m).padStart(2, '0');
             document.getElementById('s').innerText = String(s).padStart(2, '0');
