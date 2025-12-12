@@ -1,0 +1,365 @@
+:root {
+    --sky-blue: #47c6ee;
+    --sky-gradient: #87bad6;
+    --snow-white: #F5F5F5;
+    --santa-red: #e61f2d;
+    --santa-green: #22b129;
+    --santa-yellow: #fede32;
+    --text-grey: #424242;
+}
+
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--sky-blue);
+}
+
+/* --- UI HEADER --- */
+.header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 150px;
+    text-align: center;
+    z-index: 1000;
+    pointer-events: none;
+    padding-top: 20px;
+}
+
+.google-logo {
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.title {
+    font-family: 'Lobster', cursive;
+    font-size: 60px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 0;
+    line-height: 1;
+}
+
+/* --- CUENTA REGRESIVA --- */
+.countdown-container {
+    margin-top: 15px;
+    display: inline-block;
+    pointer-events: auto;
+    background: rgba(0,0,0,0.05);
+    padding: 10px 20px;
+    border-radius: 50px;
+}
+
+.countdown-timers {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+}
+
+.timer-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 70px;
+}
+
+.timer-number {
+    background: white;
+    color: var(--text-grey);
+    font-size: 36px;
+    font-weight: 300;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.timer-number::after {
+    content: ''; position: absolute; top: 50%; left: 0; right: 0;
+    height: 1px; background: rgba(0,0,0,0.05);
+}
+
+.timer-label {
+    color: rgba(255,255,255,0.9);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 8px;
+    letter-spacing: 1px;
+}
+
+/* --- ESCENARIO --- */
+#village-wrapper {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+    background: linear-gradient(to bottom, var(--sky-blue) 0%, var(--sky-gradient) 100%);
+}
+
+.layer {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+/* CAPA 1: Cielo (Sol, Luna, Nubes, Avión) */
+#sun {
+    position: absolute;
+    top: 40px;
+    left: 10%;
+    width: 120px;
+    height: auto;
+    z-index: 1;
+    animation: rotateSun 120s linear infinite;
+}
+
+#moon {
+    position: absolute;
+    top: 60px;
+    right: 15%;
+    width: 80px;
+    height: auto;
+    z-index: 1;
+    opacity: 0.8;
+}
+
+#plane {
+    position: absolute;
+    top: 100px;
+    left: -250px;
+    width: 140px; /* Avión más grande */
+    height: auto;
+    z-index: 100; /* Z-index alto para asegurar visibilidad */
+    animation: planeFly 35s linear infinite; /* Más rápido */
+}
+
+#clouds {
+    top: 0; bottom: 200px;
+    z-index: 2;
+}
+.cloud {
+    position: absolute;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50px;
+    width: 120px; height: 40px;
+    animation: drift 100s linear infinite;
+}
+.cloud::before { content:''; position:absolute; top:-20px; left:15px; width:50px; height:50px; background:inherit; border-radius:50%; }
+
+/* CAPA 2: Montañas */
+#mountains {
+    height: 400px;
+    z-index: 3;
+    bottom: 100px;
+    background-image: linear-gradient(to bottom, transparent 60%, #a8dce3 100%);
+}
+.mountain-shape {
+    position: absolute; bottom: 0;
+    border-bottom: 250px solid #9addfb;
+    border-left: 150px solid transparent;
+    border-right: 150px solid transparent;
+    opacity: 0.8;
+}
+
+/* CAPA 3: Riel / Ferry / Tren */
+#rail {
+    bottom: 130px;
+    height: 10px;
+    background: rgba(255,255,255,0.5);
+    z-index: 4;
+    width: 100%;
+}
+/* El ferry navega por encima del riel o agua imaginaria */
+#ferry {
+    position: absolute;
+    bottom: 5px; /* Ajuste respecto al riel */
+    left: -400px;
+    width: 320px; /* Ferry más grande */
+    height: auto;
+    z-index: 5;
+    animation: ferryMove 45s linear infinite;
+    animation-delay: 2s;
+}
+
+/* CAPA 4: Árboles de Fondo (Trees.png) */
+#trees {
+    position: absolute;
+    bottom: 120px; /* Justo encima del suelo */
+    left: 0;
+    height: 300px; /* Altura para ver las copas detrás de las casas */
+    width: 10000px; /* Muy ancho para repetir */
+    background-image: url('assets/trees.png');
+    background-repeat: repeat-x;
+    background-position: bottom left;
+    background-size: auto 100%; /* Ajustar altura */
+    z-index: 6; /* Detrás de las casas (10) pero delante de montañas (3) */
+    opacity: 0.9;
+}
+
+/* CAPA 5: Pista de Casas (Móvil) */
+#village-track {
+    position: absolute;
+    bottom: 120px;
+    left: 0;
+    height: 500px;
+    z-index: 10;
+    display: flex;
+    align-items: flex-end;
+    padding-left: 50vw;
+    padding-right: 50vw;
+    width: max-content;
+    will-change: transform;
+}
+
+/* CAPA 6: Suelo */
+#ground {
+    height: 120px;
+    background: var(--snow-white);
+    z-index: 20;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+}
+
+/* --- CASAS Y ELEMENTOS --- */
+.house-container {
+    position: relative;
+    margin: 0 60px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.snow-layer {
+    position: absolute;
+    bottom: 0;
+    left: -20px;
+    right: -20px;
+    z-index: 1; /* DETRÁS */
+    pointer-events: none;
+    transform: scale(0.7);
+    transform-origin: bottom center;
+}
+
+.house-layer {
+    position: relative;
+    z-index: 10;
+    display: block;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
+    transform: scale(0.7);
+    transform-origin: bottom center;
+    transition: transform 0.2s;
+}
+.house-layer:hover { transform: scale(0.75); }
+
+/* --- MARKERS --- */
+.marker {
+    width: 108px;
+    height: 175px; 
+    background-image: url('assets/markers_sprite.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.marker.unlocked {
+    position: absolute;
+    bottom: 0;
+    right: -60px;
+    z-index: 60;
+    transform: scale(1.6);
+    transform-origin: bottom center;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2));
+    animation: markerSway 3s ease-in-out infinite;
+}
+.marker.unlocked:hover { transform: scale(1.8); }
+
+.marker.locked {
+    position: relative;
+    background-position-y: -176px !important;
+    transform: scale(0.6);
+    margin-bottom: -20px;
+    z-index: 5;
+    filter: grayscale(0.2) brightness(0.9);
+    opacity: 0.9;
+}
+.marker.locked:hover { transform: scale(0.7); }
+
+/* --- ELFOS --- */
+.elf {
+    position: absolute;
+    bottom: -15px;
+    width: 65px; 
+    height: 95px;
+    background-image: url('assets/elves_sprite.png');
+    background-repeat: no-repeat;
+    background-size: 2145px 100%; 
+    z-index: 50; 
+    pointer-events: none;
+    transform: scale(1.5);
+    transform-origin: bottom center;
+}
+
+.css-house {
+    width: 200px; height: 150px; background: #90caf9;
+    position: relative; border: 4px solid #fff;
+    border-radius: 8px;
+    transform: scale(0.7);
+    transform-origin: bottom center;
+}
+.css-snow-behind {
+    position: absolute; bottom: -10px; left: -20px; width: 240px; height: 40px;
+    background: #e1f5fe; border-radius: 50%; z-index: -1;
+}
+
+/* --- CONTROLES NAV (Flechas PNG) --- */
+.nav-btn {
+    position: absolute;
+    top: 55%;
+    width: 80px;
+    height: 80px;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    cursor: pointer;
+    z-index: 1001;
+    transition: transform 0.2s;
+    user-select: none;
+    border: none;
+    outline: none;
+}
+.nav-btn:hover { transform: scale(1.1); }
+
+.prev-btn { 
+    left: 30px; 
+    background-image: url('assets/arrow_left.png');
+}
+.next-btn { 
+    right: 30px; 
+    background-image: url('assets/arrow_right.png');
+}
+
+/* Animaciones */
+@keyframes rotateSun { 100% { transform: scale(0.6) rotate(360deg); } }
+@keyframes drift { from { transform: translateX(-200px); } to { transform: translateX(110vw); } }
+@keyframes planeFly { from { transform: translateX(-300px); } to { transform: translateX(120vw); } }
+@keyframes ferryMove { 
+    from { transform: translateX(-500px) scaleX(-1); } 
+    to { transform: translateX(120vw) scaleX(-1); } 
+}
+@keyframes markerSway { 
+    0%, 100% { transform: scale(1.6) rotate(-2deg); } 
+    50% { transform: scale(1.6) rotate(2deg); } 
+}
