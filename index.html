@@ -210,7 +210,7 @@
 
         function updateTimer() {
             const now = new Date();
-            let xmas = new Date(now.getFullYear(), 11, 25);
+            let xmas = new Date(now.getFullYear(), 11, 24, 11, 0, 0); 
             if (now > xmas) xmas.setFullYear(xmas.getFullYear() + 1);
 
             const diff = xmas - now;
