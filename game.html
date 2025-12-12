@@ -16,6 +16,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden; /* Evitar scroll doble */
+            font-family: 'Inter', sans-serif;
         }
 
         .iframe-container {
@@ -33,29 +34,15 @@
             height: 100%;
             border: none;
         }
-
-        /* Efecto de nieve sutil en el fondo */
-        .snowflake {
-            color: #fff;
-            font-size: 1em;
-            font-family: Arial;
-            text-shadow: 0 0 1px #000;
-        }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col items-center justify-center relative">
 
-    <!-- Botones de Navegación (Fuera del Iframe) -->
+    <!-- Botón de Navegación (Solo el icono de la casa) -->
     <div class="absolute top-4 left-4 z-50">
-        <button onclick="irACasa()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-full shadow-lg transition duration-300 transform hover:scale-110 flex items-center justify-center border-2 border-white">
+        <button onclick="irACasa()" class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-full shadow-lg transition duration-300 transform hover:scale-110 flex items-center justify-center border-2 border-white">
             <i class="fas fa-home text-2xl"></i>
-            <span class="ml-2 hidden md:inline">Volver al Inicio</span>
         </button>
-    </div>
-
-    <!-- Título o estado (Opcional, para saber qué se está cargando) -->
-    <div id="statusText" class="absolute top-4 text-white font-bold text-lg opacity-80 pointer-events-none">
-        Cargando Santa Tracker...
     </div>
 
     <!-- Contenedor del Iframe -->
@@ -64,42 +51,32 @@
     </div>
 
     <script>
-        // 1. Lógica para obtener el parámetro 'q' de la URL
         function obtenerParametroQ() {
             const params = new URLSearchParams(window.location.search);
             return params.get('q');
         }
 
-        // 2. Función principal para cargar el iframe
         function cargarIframe() {
             const q = obtenerParametroQ();
             const baseUrl = "https://santatracker.google.com/";
             const iframe = document.getElementById('santaFrame');
-            const statusText = document.getElementById('statusText');
 
             let finalUrl = baseUrl;
 
             if (q) {
-                // Si existe q, lo concatenamos (ej: santatracker.google.com/village)
-                // Limpiamos la cadena para evitar barras dobles si el usuario puso una
                 const cleanQ = q.replace(/^\//, ''); 
                 finalUrl = baseUrl + cleanQ;
-                statusText.innerText = `Viendo: /${cleanQ}`;
             } else {
-                // Si no hay q, va a la home de tracker
-                statusText.innerText = "Santa Tracker";
             }
 
             console.log("Cargando URL:", finalUrl);
             iframe.src = finalUrl;
         }
 
-        // 3. Función para el botón de la casa
         function irACasa() {
             window.location.href = "https://logise1.github.io/santa2014/";
         }
 
-        // Ejecutar al cargar la página
         window.onload = cargarIframe;
     </script>
 </body>
